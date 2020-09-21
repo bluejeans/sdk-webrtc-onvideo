@@ -105,7 +105,7 @@ define([
       setTimeout(() => {
         console.log("Raydiant: Clicking mute button");
         $("#toggleAudioMute").click();
-      }, 3000);
+      }, 100);
 
 		}, function(error) {
 			console.log("Local device error " + error);
