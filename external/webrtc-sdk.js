@@ -29465,6 +29465,15 @@ define('WebRTC_SDK/manager/RTCLocalMediaManager',['require','my.Class','undersco
             var deferred = Q.defer();
 
             var stream = this.model.get('localAudioStream');
+            if (_.isNull(stream) || _.isUndefined(stream)) {
+              Logger.warn(
+                "Local Audio stream is null/undefined, cannot mute/unmute local audio streams. Updating 'localAudioMuted' model."
+              );
+              this.model.set("localAudioMuted", mute);
+              deferred.resolve();
+              return deferred.promise;
+            }
+
 			var currentMuteState = this.isAudioMuted(stream);
 			var muteToggled = _.isBoolean(mute) && (currentMuteState !== mute);
 
@@ -29473,20 +29482,14 @@ define('WebRTC_SDK/manager/RTCLocalMediaManager',['require','my.Class','undersco
                 deferred.resolve();
                 return deferred.promise;
             }
-            if(!_.isNull(stream) && !_.isUndefined(stream)) {
+            Logger.debug('RTCLocalMediaManager: ' + (mute ? 'Muting ' : 'Unmuting ') + 'local audio stream now');
 
-                Logger.debug('RTCLocalMediaManager: ' + (mute ? 'Muting ' : 'Unmuting ') + 'local audio stream now');
+            stream.getAudioTracks().forEach(function (track) {
+            track.enabled = !mute;
+            });
 
-                stream.getAudioTracks().forEach(function (track) {
-		            track.enabled = !mute;
-                });
-
-                this.model.set('localAudioMuted', mute);
-                Logger.debug('RTCLocalMediaManager: Local Audio ', (mute ? 'muted' : 'unmuted'));
-
-            } else {
-                Logger.warn('Local Audio stream is null, cannot mute/unmute local audio');
-            }
+            this.model.set('localAudioMuted', mute);
+            Logger.debug('RTCLocalMediaManager: Local Audio ', (mute ? 'muted' : 'unmuted'));
 
             deferred.resolve();
             return deferred.promise;
